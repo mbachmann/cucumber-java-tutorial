@@ -4,12 +4,9 @@ https://github.com/mbachmann/cucumber-java-tutorial
 
 The solution per task is in the corresponding branch.
 
-
-
 * **task01:** Cucumber project setup
 * **task02:** Implement the login feature
 * **task03:** Implement advanced Cucumber subjects
-
 
 ## Error on MacOS
 
