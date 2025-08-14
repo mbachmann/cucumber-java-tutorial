@@ -1,7 +1,6 @@
 package com.example.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.*;
 
 /**
  * HasLogger is a feature interface that provides Logging capability for anyone

@@ -1,14 +1,13 @@
 package com.example.utils;
 
+import java.time.Duration;
+import java.util.function.Supplier;
+
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.*;
 import org.slf4j.*;
-
-import java.time.Duration;
-import java.util.function.Supplier;
 
 public class SafeActions {
     private static final Logger log = LoggerFactory.getLogger(SafeActions.class);

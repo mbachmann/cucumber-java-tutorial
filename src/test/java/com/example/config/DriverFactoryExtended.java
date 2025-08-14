@@ -1,7 +1,15 @@
 package com.example.config;
 
-import io.qameta.allure.Allure;
+import java.io.*;
+import java.net.*;
+import java.nio.file.Files;
+import java.text.*;
+import java.time.Duration;
+import java.util.*;
+import java.util.logging.Level;
+
 import org.openqa.selenium.*;
+import org.openqa.selenium.Proxy;
 import org.openqa.selenium.bidi.log.LogLevel;
 import org.openqa.selenium.bidi.module.LogInspector;
 import org.openqa.selenium.chrome.*;
@@ -10,20 +18,13 @@ import org.openqa.selenium.firefox.*;
 import org.openqa.selenium.logging.*;
 import org.openqa.selenium.remote.*;
 import org.openqa.selenium.remote.service.DriverService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.example.utils.HasLogger;
-import com.example.utils.OsCheck;
+import org.slf4j.*;
 
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.time.Duration;
-import java.util.*;
-import java.util.logging.Level;
+import com.example.utils.*;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
+
+import io.qameta.allure.Allure;
 
 public class DriverFactoryExtended implements HasLogger {
 
@@ -360,6 +361,80 @@ public class DriverFactoryExtended implements HasLogger {
 	public static void attachPageScreenshotToAllure(String name) {
 		byte[] screenshotBytes = ((TakesScreenshot) getDriver()).getScreenshotAs(OutputType.BYTES);
 		Allure.attachment(name, new ByteArrayInputStream(screenshotBytes));
+	}
+
+	public static void printBrowserLogs() {
+
+		WebDriver driver = DriverFactoryExtended.getDriver();
+		if (driver instanceof ChromeDriver || driver instanceof EdgeDriver || driver instanceof RemoteWebDriver) {
+			if (driver instanceof RemoteWebDriver) {
+				String browserName = ((RemoteWebDriver) driver).getCapabilities().getBrowserName().toLowerCase();
+				if (!(browserName.equalsIgnoreCase("chrome") || browserName.equalsIgnoreCase("edge"))) {
+					return;
+				}
+			}
+			try {
+				Logs browserLogs = driver.manage().logs();
+				LogEntries logEntries = browserLogs.get(LogType.BROWSER);
+				StringBuilder logs = new StringBuilder();
+
+				// Log Levels LoggerFactory: error, warn, info, debug, trace,
+				// Log Levels from Browser: OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL
+				for (LogEntry entry : logEntries) {
+					logs.append(formatDate(entry.getTimestamp()))
+						.append(" ")
+						.append("[browser]")
+						.append(" ")
+						.append(entry.getLevel())
+						.append(" ")
+						.append(entry.getMessage());
+					logs.append(System.lineSeparator());
+				}
+
+				if (!logs.isEmpty()) {
+					logger.info("{}{}", System.lineSeparator(), logs);
+				}
+
+				addLogEntriesToAllureFromMapAppender();
+
+			} catch (Exception e) {
+				logger.error("Failed to get browser logs {}", String.valueOf(e));
+			}
+		}
+	}
+
+	private static String formatDate(long timestamp) {
+		Date date = new Date(timestamp);
+		Format format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		return format.format(date);
+	}
+
+	private static void addLogEntriesToAllureFromMapAppender() {
+		List<String> logEntries = new ArrayList<>();
+		ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+		MapAppender mapAppender = (MapAppender)root.getAppender("map");
+
+		if (mapAppender != null) {
+			Map<String, ILoggingEvent> eventMap = mapAppender.getEventMap();
+			eventMap.forEach((k, event) -> {
+				logEntries.add(mapAppender.createLogEntry(event));
+			});
+
+			List<String> logs = new ArrayList<>();
+			logEntries.forEach(entry -> {
+				if (entry.contains("[browser]")) {
+					if (entry.contains("\n") && entry.contains("\r")) {
+						entry = entry.replace("\r", "");
+					}
+					logs.addAll(Arrays.asList(entry.split("\n")));
+				} else {
+					logs.add(entry); // + System.lineSeparator());
+				}
+			});
+			logs.sort(String::compareTo);
+			Allure.addAttachment("log", String.join("\n", logs));
+			eventMap.clear();
+		}
 	}
 
 	public static void attachLogResponseToAllure(String responseName, String responseContent) {
