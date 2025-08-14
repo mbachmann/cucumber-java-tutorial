@@ -180,21 +180,12 @@
 				<version>${surefire-plugin.version}</version>
 				<configuration>
 					<includes>
-						<include>**/RunCucumberTestJunit4.java</include>
+						<include>**/RunCucumberJunit5Test.java</include>
 					</includes>
 					<excludes>
 						<exclude>none</exclude>
 					</excludes>
 					<testFailureIgnore>true</testFailureIgnore>
-					<!-- Parallel execution of test classes: methods, classes, suites, suitesAndClasses, suitesAndMethods, classesAndMethods or all. -->
-					<!-- https://maven.apache.org/surefire/maven-surefire-plugin/examples/fork-options-and-parallel-execution.html -->
-					<parallel>classes</parallel>
-					<threadCount>4</threadCount>
-					<!-- The other possibility for parallel test execution is setting the parameter forkCount to a value higher than 1. -->
-					<!-- As reuseForks=false creates a new JVM process for each test class, using parallel=classes would have no effect. -->
-					<forkCount>4</forkCount>
-					<!-- <reuseForks>true</reuseForks> -->
-					<!-- <reportsDirectory>target/surefire-reports-${surefire.forkNumber}</reportsDirectory> -->
 					<systemPropertyVariables>
 						<browser>chrome</browser>
 						<!--<remoteUrl>http://localhost:4444/wd/hub</remoteUrl>-->

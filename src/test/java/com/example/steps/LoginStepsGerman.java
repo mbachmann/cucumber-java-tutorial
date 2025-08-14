@@ -20,7 +20,7 @@ public class LoginStepsGerman extends TestBase {
 
 	@Angenommen("Benutzer ist auf der Login-Seite")
 	public void userOnLoginPage() {
-		driver.get(url);
+		robustGet(url);
 		Assertions.assertThat(loginPage.isOnLoginPage()).isTrue();
 	}
 
