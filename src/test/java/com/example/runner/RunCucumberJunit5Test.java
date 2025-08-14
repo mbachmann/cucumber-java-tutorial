@@ -14,9 +14,9 @@ import io.cucumber.junit.platform.engine.Constants;
 
 @Suite
 @IncludeEngines("cucumber")
-// @SelectClasspathResource("features")
-@SelectClasspathResource("features/login.feature")
-@SelectClasspathResource("features/logout.feature")
+@SelectClasspathResource("features")
+// @SelectClasspathResource("features/login.feature")
+// @SelectClasspathResource("features/logout.feature")
 @ConfigurationParameter(key = Constants.GLUE_PROPERTY_NAME,value = "com.example.steps")
 @ConfigurationParameter(key = Constants.FILTER_TAGS_PROPERTY_NAME,value = "@smoke or @regression")
 @ConfigurationParameter(key = Constants.EXECUTION_DRY_RUN_PROPERTY_NAME,value = "false")

@@ -11,8 +11,9 @@ import io.cucumber.junit.*;
 @CucumberOptions(plugin = { "pretty", "html:target/selenium.html", "json:target/selenium-json-report.json","io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm" },
 		tags = "@smoke or @regression",
 		features = {
-		"src/test/resources/features/login.feature",
-		"src/test/resources/features/logout.feature"
+				"src/test/resources/features/login.feature",
+				"src/test/resources/features/logout.feature",
+				"src/test/resources/features/forgot_password.feature"
 		},
 		monochrome = true,
 		glue = {"com.example.steps"}
