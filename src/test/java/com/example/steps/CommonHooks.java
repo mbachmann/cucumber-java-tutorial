@@ -32,7 +32,7 @@ public class CommonHooks implements HasLogger {
 			String filename = getScreenshotFilename(scenario.getName());
 			DriverFactoryExtended.saveScreenshot(filename);
 		}
-		DriverFactoryExtended.quitDriver();
+		DriverFactoryExtended.quitDriverAndService();
 	}
 
 	@AfterAll

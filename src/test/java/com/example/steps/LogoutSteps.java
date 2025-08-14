@@ -1,21 +1,18 @@
 package com.example.steps;
 
 import org.assertj.core.api.Assertions;
-import org.openqa.selenium.WebDriver;
 
-import com.example.config.DriverFactoryExtended;
 import com.example.pages.*;
+import com.example.utils.TestBase;
 
 import io.cucumber.java.en.*;
 
-public class LogoutSteps {
+public class LogoutSteps extends TestBase {
 
 	private LoginPage loginPage;
 	private SecureAreaPage secureAreaPage;
-	private final WebDriver driver;
 
 	public LogoutSteps() {
-		driver = DriverFactoryExtended.getDriver();
 	}
 
 	@When("the user clicks logout")

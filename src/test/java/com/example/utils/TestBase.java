@@ -19,7 +19,7 @@ public class TestBase implements HasLogger {
 	protected WebDriverWait wait;
 	protected String DOWNLOAD_DIR;
 
-	protected void setup() {
+	public TestBase() {
 		driver = DriverFactoryExtended.getDriver();
 		DOWNLOAD_DIR = DriverFactoryExtended.getDownloadDir();
 		wait = new WebDriverWait(driver, Duration.ofSeconds(10));

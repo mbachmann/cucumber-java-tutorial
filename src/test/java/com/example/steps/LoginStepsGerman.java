@@ -1,23 +1,20 @@
 package com.example.steps;
 
 import org.assertj.core.api.Assertions;
-import org.openqa.selenium.WebDriver;
 
-import com.example.config.DriverFactoryExtended;
 import com.example.pages.LoginPage;
+import com.example.utils.TestBase;
 
 import io.cucumber.java.de.*;
 import io.cucumber.java.en.When;
 
-public class LoginStepsGerman {
+public class LoginStepsGerman extends TestBase {
 
 
 	private final LoginPage loginPage;
 	private final String url = "https://the-internet.herokuapp.com/login";
-	private final WebDriver driver;
 
 	public LoginStepsGerman() {
-		driver = DriverFactoryExtended.getDriver();
 		loginPage = new LoginPage(driver);
 	}
 

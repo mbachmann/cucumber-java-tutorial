@@ -1,26 +1,23 @@
 package com.example.steps;
 
 import org.assertj.core.api.Assertions;
-import org.openqa.selenium.WebDriver;
 
-import com.example.config.DriverFactoryExtended;
 import com.example.pages.LoginPage;
+import com.example.utils.TestBase;
 
 import io.cucumber.java.en.*;
 
-public class LoginSteps {
+public class LoginSteps extends TestBase {
 
 	private final LoginPage loginPage;
 	private final String url = "https://the-internet.herokuapp.com/login";
-	private final WebDriver driver;
 
-	public LoginSteps() {
-		driver = DriverFactoryExtended.getDriver();
+	public LoginSteps()  {
 		loginPage = new LoginPage(driver);
 	}
 
 	@Given("the user is on the login page")
-	public void theUserIsOnTheLoginPage(String url) {
+	public void theUserIsOnTheLoginPage() {
 		driver.get(url);
 		Assertions.assertThat(loginPage.isOnLoginPage()).isTrue();
 	}
