@@ -22,6 +22,7 @@ public class LoginPage extends BasePage {
 
 	private final By flash = By.id("flash");
 	private final By form = By.id("login");
+	private final By logoutButton = By.cssSelector("a.button.secondary.radius");
 
 	public LoginPage(WebDriver driver) {
 		super(driver);
@@ -62,5 +63,9 @@ public class LoginPage extends BasePage {
 
 	public boolean isOnLoginPage() {
 		return usernameInput.isDisplayed() && passwordInput.isDisplayed();
+	}
+
+	public void logout() {
+		jsClick(logoutButton);
 	}
 }

@@ -8,13 +8,13 @@ import com.example.utils.TestBase;
 import io.cucumber.java.de.*;
 import io.cucumber.java.en.When;
 
-public class LoginStepsGerman extends TestBase {
+public class LoginGermanSteps extends TestBase {
 
 
 	private final LoginPage loginPage;
 	private final String url = "https://the-internet.herokuapp.com/login";
 
-	public LoginStepsGerman() {
+	public LoginGermanSteps() {
 		loginPage = new LoginPage(driver);
 	}
 

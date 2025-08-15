@@ -148,6 +148,21 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Cumcumber Reporting -->
+		<dependency>
+			<groupId>net.masterthought</groupId>
+			<artifactId>cucumber-reporting</artifactId>
+			<version>5.10.0</version>
+		</dependency>
+
+		<!--
+				<dependency>
+					<groupId>me.jvt.cucumber</groupId>
+					<artifactId>reporting-plugin</artifactId>
+					<version>7.2.0</version>
+				</dependency>
+		-->
+
 		<!--Logging Dependencies-->
 
 		<dependency>
@@ -170,6 +185,7 @@
 			<version>${awaitility.version}</version>
 			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 
 	<build>
