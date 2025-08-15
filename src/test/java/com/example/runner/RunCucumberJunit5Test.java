@@ -23,6 +23,7 @@ import io.cucumber.junit.platform.engine.Constants;
 @ConfigurationParameter(key = Constants.PLUGIN_PROPERTY_NAME,
 		value = "pretty, summary, html:target/selenium.html, "
 				+ "json:target/selenium-json-report.json, "
+				// + "me.jvt.cucumber.report.PrettyReports:target/cucumber, "
 				+ "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm")
 public class RunCucumberJunit5Test {
 }

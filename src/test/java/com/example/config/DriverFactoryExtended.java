@@ -24,6 +24,7 @@ import com.example.utils.*;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
+import io.cucumber.java.Scenario;
 import io.qameta.allure.Allure;
 
 public class DriverFactoryExtended implements HasLogger {
@@ -349,8 +350,8 @@ public class DriverFactoryExtended implements HasLogger {
 		logger.debug("Set {} driver: {}", browser, path);
 	}
 
-	public static void saveScreenshot(String name) {
-		attachPageScreenshotToAllure(name);
+	public static void saveScreenshot(Scenario scenario, String name) {
+		attachPageScreenshotToCucumber(scenario, name);
 		File screenshot = ((TakesScreenshot) getDriver()).getScreenshotAs(OutputType.FILE);
 		try {
 			File target = new File("target/screenshots/" + name + ".png");
@@ -364,6 +365,11 @@ public class DriverFactoryExtended implements HasLogger {
 	public static void attachPageScreenshotToAllure(String name) {
 		byte[] screenshotBytes = ((TakesScreenshot) getDriver()).getScreenshotAs(OutputType.BYTES);
 		Allure.attachment(name, new ByteArrayInputStream(screenshotBytes));
+	}
+
+	public static void attachPageScreenshotToCucumber(Scenario scenario, String name) {
+		byte[] screenshotBytes = ((TakesScreenshot) getDriver()).getScreenshotAs(OutputType.BYTES);
+		scenario.attach(screenshotBytes, "image/png", name);
 	}
 
 	public static void printBrowserLogs() {
