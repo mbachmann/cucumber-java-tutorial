@@ -3,6 +3,7 @@ Feature: Forgot Password
   As a user who forgot the password
   I want to request a password reset
 
+  @smoke
   Scenario: Request reset email
     Given the user is on the login page
     When the user navigates to the forgot password page

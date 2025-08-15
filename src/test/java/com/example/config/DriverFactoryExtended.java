@@ -237,23 +237,26 @@ public class DriverFactoryExtended implements HasLogger {
 		options.setCapability("goog:loggingPrefs", getLoggingPreferences());
 		options.addArguments("--safebrowsing-disable-download-protection");
 		options.addArguments("--safebrowsing-disable-extension-blacklist");
+		options.addArguments("--incognito");
 		options.setAcceptInsecureCerts(true);
 		options.setPageLoadStrategy(PageLoadStrategy.EAGER);
 		String chromeUserDataDir = System.getProperty("SelChromeUserDataDir");
 		if (chromeUserDataDir != null) {
 			options.addArguments("--user-data-dir=" + chromeUserDataDir);
 		}
-		setChromeDownloadOptions(options);
+		setChromePrefsOptions(options);
 		getProxyInformation().ifPresent(proxyInformation -> {options.setCapability("proxy", proxyInformation);});
 		return options;
 	}
 
-	private static void setChromeDownloadOptions(ChromeOptions chromeOptions) {
+	private static void setChromePrefsOptions(ChromeOptions chromeOptions) {
 
 		Map<String, Object> prefs = new HashMap<>();
 		prefs.put("download.default_directory", getBrowserDownloadDir());
 		prefs.put("download.prompt_for_download", false);
 		prefs.put("safebrowsing.enabled", true);
+		prefs.put("credentials_enable_service", false);
+		prefs.put("profile.password_manager_enabled", false);
 		chromeOptions.setExperimentalOption("prefs", prefs);
 	}
 

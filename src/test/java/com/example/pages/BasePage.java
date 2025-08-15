@@ -39,6 +39,13 @@ public abstract class BasePage {
 		((JavascriptExecutor) driver).executeScript("arguments[0].click();", el);
 	}
 
+	protected void clearAndType(By locator, String text) {
+		wait.until(ExpectedConditions.elementToBeClickable(locator));
+		WebElement el = driver.findElement(locator);
+		el.clear();
+		setValue(driver,  el, text);
+	}
+
 	/**
 	 * Set the value of a WebElement using sendKeys() or JavaScript.
 

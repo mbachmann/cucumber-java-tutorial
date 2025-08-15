@@ -41,4 +41,9 @@ public class LoginSteps extends TestBase {
 		String flash = loginPage.getFlashMessage();
 		Assertions.assertThat(flash).contains(expected);
 	}
+
+	@Then("the flash message should contain {string}")
+	public void theFlashMessageShouldContain(String expectedMessage) {
+		Assertions.assertThat(loginPage.getFlashMessage()).contains(expectedMessage);
+	}
 }

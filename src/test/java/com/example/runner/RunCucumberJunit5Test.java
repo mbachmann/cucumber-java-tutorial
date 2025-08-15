@@ -21,8 +21,23 @@ import io.cucumber.junit.platform.engine.Constants;
 @ConfigurationParameter(key = Constants.FILTER_TAGS_PROPERTY_NAME,value = "@smoke or @regression")
 @ConfigurationParameter(key = Constants.EXECUTION_DRY_RUN_PROPERTY_NAME,value = "false")
 @ConfigurationParameter(key = Constants.PLUGIN_PROPERTY_NAME,
-		value = "pretty, html:target/selenium.html, "
+		value = "pretty, summary, html:target/selenium.html, "
 				+ "json:target/selenium-json-report.json, "
 				+ "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm")
 public class RunCucumberJunit5Test {
 }
+
+/**
+ * Zuätzliche Konfiguration für parallel Execution (anstelle junit-platform.properties)
+ * // ==== Cucumber parallel config (moved from junit-platform.properties) ====
+ * @ConfigurationParameter(key = "cucumber.execution.parallel.enabled", value = "true")
+ * @ConfigurationParameter(key = "cucumber.execution.parallel.config.strategy", value = "fixed")
+ * @ConfigurationParameter(key = "cucumber.execution.parallel.config.fixed.parallelism", value = "4")
+ * @ConfigurationParameter(key = "cucumber.execution.parallel.config.fixed.max-pool-size", value = "4")
+ * @ConfigurationParameter(key = "cucumber.execution.parallel.mode", value = "scenario")
+ * // Alternative für Feature-Ebene:
+ * // @ConfigurationParameter(key = "cucumber.execution.parallel.mode.classes", value = "feature")
+ *
+ * // ==== JUnit 5 (Jupiter) parallel setting ====
+ * @ConfigurationParameter(key = "junit.jupiter.execution.parallel.enabled", value = "false")
+ */
