@@ -2,7 +2,7 @@ package com.example.config;
 
 import java.io.*;
 import java.net.*;
-import java.nio.file.Files;
+import java.nio.file.*;
 import java.text.*;
 import java.time.Duration;
 import java.util.*;
@@ -31,12 +31,17 @@ public class DriverFactoryExtended implements HasLogger {
 
 	private static final Logger logger = LoggerFactory.getLogger(DriverFactoryExtended.class);
 
-	private static final String CHROME_DRIVER = "src/test/resources/drivers/%s/chromedriver-138";
-	private static final String FIREFOX_DRIVER = "src/test/resources/drivers/%s/geckodriver";
-	private static final String EDGE_DRIVER = "src/test/resources/drivers/%s/msedgedriver-139";
+	private static final String PROJECT_CHROME_DRIVER = "src/test/resources/drivers/%s/chromedriver-138";
+	private static final String PROJECT_FIREFOX_DRIVER = "src/test/resources/drivers/%s/geckodriver";
+	private static final String PROJECT_EDGE_DRIVER = "src/test/resources/drivers/%s/msedgedriver-139";
+
+	private static final String LINUX_CHROME_DRIVER = "/usr/local/bin/chromedriver";
+	private static final String LINUX_FIREFOX_DRIVER = "/usr/local/bin/geckodriver";
+	private static final String LINUX_EDGE_DRIVER = "/usr/local/bin/msedgedriver";
 
 	private static final ThreadLocal<WebDriver> driver = new ThreadLocal<>();
 	private static final ThreadLocal<DriverService> driverService = new ThreadLocal<>();
+	private static final ThreadLocal<Path> sessionProfileDir = new InheritableThreadLocal<>();
 
 	public static WebDriver getDriver() {
 		return driver.get();
@@ -218,6 +223,8 @@ public class DriverFactoryExtended implements HasLogger {
 		getDriver().manage().timeouts().scriptTimeout(Duration.ofMinutes(2));
 		getDriver().manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
 
+		getDriver().manage().window().setSize(new Dimension(1920,1080));
+
 		try {
 			Dimension windowSize = getDriver().manage().window().getSize();
 			logger.info("Window size: {}x{}", windowSize.width, windowSize.height);
@@ -241,12 +248,10 @@ public class DriverFactoryExtended implements HasLogger {
 		options.addArguments("--incognito");
 		options.setAcceptInsecureCerts(true);
 		options.setPageLoadStrategy(PageLoadStrategy.EAGER);
-		String chromeUserDataDir = System.getProperty("SelChromeUserDataDir");
-		if (chromeUserDataDir != null) {
-			options.addArguments("--user-data-dir=" + chromeUserDataDir);
-		}
+		options.addArguments("--user-data-dir=" + getUserDataDir("chrome"));
 		setChromePrefsOptions(options);
 		getProxyInformation().ifPresent(proxyInformation -> {options.setCapability("proxy", proxyInformation);});
+		// logger.info(getOptionsAsString(options));
 		return options;
 	}
 
@@ -259,6 +264,36 @@ public class DriverFactoryExtended implements HasLogger {
 		prefs.put("credentials_enable_service", false);
 		prefs.put("profile.password_manager_enabled", false);
 		chromeOptions.setExperimentalOption("prefs", prefs);
+	}
+
+	public static String getUserDataDir(String browserName) {
+		try {
+			Path base =
+					Optional.ofNullable(System.getProperty("UserDataDir"))
+							.filter(s -> !s.isBlank())
+							.map(Paths::get)
+							.orElseGet(() -> {
+								Path shm = Paths.get("/dev/shm");
+								if (Files.isDirectory(shm) && Files.isWritable(shm)) return shm;
+								return Paths.get(System.getProperty("java.io.tmpdir"));
+							});
+
+			String buildTag   = Optional.ofNullable(System.getenv("BUILD_TAG")).orElse("local");
+			String execNum    = Optional.ofNullable(System.getenv("EXECUTOR_NUMBER")).orElse("0");
+			String threadId   = String.valueOf(Thread.currentThread().getId());
+			String unique     = UUID.randomUUID().toString();
+
+			Path dir = base.resolve("browser-profiles")
+						   .resolve(String.format("%s-%s-%s-%s-%s",
+												  browserName.toLowerCase(), buildTag, execNum, threadId, unique));
+
+			Files.createDirectories(dir);
+			sessionProfileDir.set(dir);
+			return dir.toString();
+		} catch (Exception e) {
+			logger.error("Error creating {} user data directory: {}", browserName, e.getMessage(), e);
+			throw new RuntimeException("Could not create browser user data directory", e);
+		}
 	}
 
 	public static String getDownloadDir() {
@@ -298,6 +333,7 @@ public class DriverFactoryExtended implements HasLogger {
 		options.addPreference("browser.download.dir", getBrowserDownloadDir());
 		options.addPreference("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream,text/plain,application/pdf");
 		options.addPreference("pdfjs.disabled", true);
+		options.addArguments("--user-data-dir=" + getUserDataDir("edge"));
 		getProxyInformation().ifPresent(proxyInformation -> {options.setCapability("proxy", proxyInformation);});
 		options.setAcceptInsecureCerts(true);
 		options.setPageLoadStrategy(PageLoadStrategy.EAGER);
@@ -307,12 +343,14 @@ public class DriverFactoryExtended implements HasLogger {
 	private static EdgeOptions getEdgeOptions() {
 		EdgeOptions options = new EdgeOptions();
 		options.addArguments("--disable-gpu", "--no-sandbox", "--remote-allow-origins=*");
+		if (OsCheck.getOperatingSystemType() == OsCheck.OSType.Linux) options.addArguments("--headless=new");
 		options.setCapability(EdgeOptions.LOGGING_PREFS, getLoggingPreferences());
 		Map<String, Object> prefs = new HashMap<>();
 		prefs.put("download.default_directory", getBrowserDownloadDir());
 		prefs.put("download.prompt_for_download", false);
 		prefs.put("download.directory_upgrade", true);
 		prefs.put("safebrowsing.enabled", true);
+		options.addArguments("--user-data-dir=" + getUserDataDir("edge"));
 		options.setAcceptInsecureCerts(true);
 		options.setPageLoadStrategy(PageLoadStrategy.EAGER);
 		getProxyInformation().ifPresent(proxyInformation -> {options.setCapability("proxy", proxyInformation);});
@@ -340,12 +378,34 @@ public class DriverFactoryExtended implements HasLogger {
 	private static void setDriverProperty(String browser) {
 		OsCheck.OSType os = OsCheck.getOperatingSystemType();
 		String osFolder = OsCheck.getDriverFolder();
-		String path = switch (browser) {
-			case "chrome" -> String.format(CHROME_DRIVER, osFolder) + (os == OsCheck.OSType.Windows ? ".exe" : "");
-			case "firefox" -> String.format(FIREFOX_DRIVER, osFolder) + (os == OsCheck.OSType.Windows ? ".exe" : "");
-			case "edge" -> String.format(EDGE_DRIVER, osFolder) + (os == OsCheck.OSType.Windows ? ".exe" : "");
-			default -> throw new IllegalArgumentException("Unknown browser: " + browser);
-		};
+		String path = null;
+		if (os == OsCheck.OSType.Linux) {
+			path = switch (browser) {
+				case "chrome" -> LINUX_CHROME_DRIVER;
+				case "firefox" -> LINUX_FIREFOX_DRIVER;
+				case "edge" -> LINUX_EDGE_DRIVER;
+				default -> throw new IllegalArgumentException("Unknown browser: " + browser);
+			};
+		} else {
+			path = switch (browser) {
+				case "chrome" -> String.format(PROJECT_CHROME_DRIVER, osFolder) + (os == OsCheck.OSType.Windows ? ".exe" : "");
+				case "firefox" -> String.format(PROJECT_FIREFOX_DRIVER, osFolder) + (os == OsCheck.OSType.Windows ? ".exe" : "");
+				case "edge" -> String.format(PROJECT_EDGE_DRIVER, osFolder) + (os == OsCheck.OSType.Windows ? ".exe" : "");
+				default -> throw new IllegalArgumentException("Unknown browser: " + browser);
+			};
+		}
+		File driverFile = new File(path);
+		if (!driverFile.exists()) {
+			throw new IllegalStateException(
+					"WebDriver binary for " + browser + " not found at: " + driverFile.getAbsolutePath()
+			);
+		}
+
+		if (!driverFile.canExecute()) {
+			throw new IllegalStateException(
+					"WebDriver binary for " + browser + "  found but not executable at: " + driverFile.getAbsolutePath()
+			);
+		}
 		System.setProperty("webdriver." + browser + ".driver", path);
 		logger.debug("Set {} driver: {}", browser, path);
 	}
@@ -491,9 +551,30 @@ public class DriverFactoryExtended implements HasLogger {
 		}
 	}
 
+	public static void cleanup() {
+
+		Path dir = sessionProfileDir.get();
+		if (dir != null) {
+			try {
+				// delete recursively
+				Files.walk(dir)
+					 .sorted(Comparator.reverseOrder())
+					 .forEach(p -> {
+						 try { Files.deleteIfExists(p); } catch (IOException ignore) {}
+					 });
+			} catch (IOException ignore) {
+				// if deletion fails, rely on workspace cleanup
+			} finally {
+				sessionProfileDir.remove();
+			}
+		}
+
+	}
+
 	public static void quitDriverAndService() {
 		quitDriver();
 		quitService();
+		cleanup();
 	}
 
 	private static URL getRemoteUrl(String remoteUrl) {
@@ -598,6 +679,14 @@ public class DriverFactoryExtended implements HasLogger {
 			return Optional.of(px);
 		}
 		return Optional.empty();
+	}
+
+	private static String getOptionsAsString(MutableCapabilities options) {
+		StringBuilder sb = new StringBuilder();
+		for (Map.Entry<String, Object> entry : options.asMap().entrySet()) {
+			sb.append(entry.getKey()).append("=").append(entry.getValue()).append(", ");
+		}
+		return sb.toString().replaceAll(", $", "");
 	}
 
 }
